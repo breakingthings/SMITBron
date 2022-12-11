@@ -1,0 +1,68 @@
+{
+  "name": "smitbron",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "jquery": "3.6.1",
+    "history": "4.10.1",
+    "merge": "2.1.1",
+    "popper.js": "1.16.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-redux": "8.0.5",
+    "react-router": "6.4.4",
+    "react-router-dom": "6.4.4",
+    "redux": "4.2.0",
+    "redux-thunk": "2.4.2",
+    "@mui/base": "5.0.0-alpha.108",
+    "@mui/icons-material": "5.10.16",
+    "@mui/material": "5.10.16",
+    "@mui/x-data-grid": "5.17.14",
+    "@mui/x-date-pickers": "5.0.9",
+    "@emotion/react": "11.10.5",
+    "@emotion/styled": "11.10.5",
+    "axios": "1.2.0",
+    "moment": "2.29.4",
+    "formik": "2.2.9"
+  },
+  "devDependencies": {
+    "@types/history": "4.7.10",
+    "@types/jest": "24.0.19",
+    "@types/node": "18.11.10",
+    "@types/react": "18.0.26",
+    "@types/react-dom": "18.0.9", 
+    "@types/react-redux": "7.1.24",
+    "@types/react-router": "5.1.19",
+    "@types/react-router-dom": "5.3.3",
+    "@types/reactstrap": "8.7.2",
+    "cross-env": "7.0.3",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "nan": "^2.15.0",
+    "react-scripts": "5.0.1",
+    "typescript": "4.9.3",
+    "cpx": "1.5.0",
+    "start-server-and-test": "1.14.0",
+    "npm-run-all": "4.1.5"
+    
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "cross-env CI=true react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "lint": "eslint ./src/**/*.ts ./src/**/*.tsx",
+    "generate-client:server-app": "start-server-and-test generate-client:server-app:serve http-get://localhost:5700/swagger/v1/swagger.json generate-client:server-app:generate",
+    "generate-client:server-app:serve": "cross-env ASPNETCORE_URLS=http://*:5700 ASPNETCORE_ENVIRONMENT=Development dotnet run --project ../ --no-launch-profile",
+    "generate-client:server-app:generate": "dotnet run --project ../../SMITBron.ClientGenerator http://localhost:5700/swagger/v1/swagger.json src/APIClient.ts"
+  },
+  "proxy": "http://localhost:7000",
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}

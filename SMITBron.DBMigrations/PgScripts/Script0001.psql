@@ -1,0 +1,114 @@
+﻿--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+SET default_tablespace = '';
+
+--
+-- Name: apartment; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.apartment (
+    id uuid NOT NULL,
+    apartmentnumber integer NOT NULL,
+    roomcount integer NOT NULL,
+    bedcount integer NOT NULL,
+    price numeric(8,2) NOT NULL
+);
+
+
+--
+-- Name: booking; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.booking (
+    id uuid NOT NULL,
+    startdate date NOT NULL,
+    enddate date NOT NULL,
+    apartmentid uuid NOT NULL,
+    guestid uuid NOT NULL,
+    canceldate timestamp with time zone
+);
+
+
+--
+-- Name: guest; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.guest (
+    id uuid NOT NULL,
+    firstname character varying(50),
+    lastname character varying(50) NOT NULL,
+    idcode character varying(20) NOT NULL,
+    email character varying(255) NOT NULL
+);
+
+
+--
+-- Name: apartment apartment_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.apartment
+    ADD CONSTRAINT apartment_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: booking booking_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.booking
+    ADD CONSTRAINT booking_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: guest guest_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.guest
+    ADD CONSTRAINT guest_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fki_booking_apartmentid_fkey; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX fki_booking_apartmentid_fkey ON public.booking USING btree (apartmentid);
+
+
+--
+-- Name: fki_booking_guestid_fkey; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX fki_booking_guestid_fkey ON public.booking USING btree (guestid);
+
+
+--
+-- Name: booking booking_apartmentid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.booking
+    ADD CONSTRAINT booking_apartmentid_fkey FOREIGN KEY (apartmentid) REFERENCES public.apartment(id);
+
+
+--
+-- Name: booking booking_guestid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.booking
+    ADD CONSTRAINT booking_guestid_fkey FOREIGN KEY (guestid) REFERENCES public.guest(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
