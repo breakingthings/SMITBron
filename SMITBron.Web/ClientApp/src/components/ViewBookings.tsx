@@ -36,13 +36,14 @@ export const ViewBookings = () => {
   const handleSortModelChange = React.useCallback(
     (sortModel: GridSortModel) => {
       setSortModel(sortModel[0]);
+
     },
     []
   );
 
   useEffect(() => {
     getBookings();
-  }, []);
+  }, [sortModel]);
 
   const columns: GridColDef[] = [
     {

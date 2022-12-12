@@ -33,9 +33,9 @@ namespace SMITBron.HotelService.Handlers
                 .Where(x => x.CancelDate == null).Skip((query.PageNumber - 1) * query.PageSize)
                 .Take(query.PageSize);
 
-            var sortFunc = GetSortFunc(query.SortField);
+            var sortExpr = GetSortFunc(query.SortField);
 
-            var sortedQuery = query.SortDesc ? dbQuery.OrderByDescending(sortFunc) : dbQuery.OrderBy(sortFunc);
+            var sortedQuery = query.SortDesc ? dbQuery.OrderByDescending(sortExpr) : dbQuery.OrderBy(sortExpr);
 
             var dbResult = await sortedQuery.Select(x => new
             {
@@ -73,24 +73,39 @@ namespace SMITBron.HotelService.Handlers
 
         private Expression<Func<Booking, object>> GetSortFunc(string field)
         {
-            Func<Booking, object> sortFunc;
+            Expression<Func<Booking, object>> expression;
             switch (field)
             {
-                case nameof(Booking.StartDate):
-                    sortFunc = x => x.StartDate;
+                case "startDate":
+                    expression = x => x.StartDate;
                     break;
-                case nameof(Booking.EndDate):
-                    sortFunc = x => x.EndDate;
+                case "endDate":
+                    expression = x => x.EndDate;
                     break;
-                case nameof(Booking.Guest.Firstname):
-                    sortFunc = x => x.Guest.Firstname;
+                case "firstName":
+                    expression = x => x.Guest.Firstname;
+                    break;
+                case "lastName":
+                    expression = x => x.Guest.Lastname;
+                    break;
+                case "email":
+                    expression = x => x.Guest.Email;
+                    break;
+                case "idcode":
+                    expression = x => x.Guest.IdCode;
+                    break;
+                case "cancelDate":
+                    expression = x => x.CancelDate;
+                    break;
+                case "apartmentNumber":
+                    expression = x => x.Apartment.ApartmentNumber;
                     break;
                 default:
-                    sortFunc = x => x.StartDate;
+                    expression = x => x.StartDate;
                     break;
             }
             
-            return x => sortFunc;
+            return expression;
 
         }
     }
