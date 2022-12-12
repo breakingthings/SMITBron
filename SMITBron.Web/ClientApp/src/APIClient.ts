@@ -252,6 +252,65 @@ export class BookingClient extends ApiBase {
         }
         return Promise.resolve<SwaggerResponse<FileResponse>>(new SwaggerResponse(status, _headers, null as any));
     }
+
+    cancel(model: CancelBookingModel , cancelToken?: CancelToken | undefined): Promise<SwaggerResponse<FileResponse>> {
+        let url_ = this.baseUrl + "/api/Booking";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_: AxiosRequestConfig = {
+            data: content_,
+            responseType: "blob",
+            method: "PUT",
+            url: url_,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/octet-stream"
+            },
+            cancelToken
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.instance.request(transformedOptions_);
+        }).catch((_error: any) => {
+            if (isAxiosError(_error) && _error.response) {
+                return _error.response;
+            } else {
+                throw _error;
+            }
+        }).then((_response: AxiosResponse) => {
+            return this.processCancel(_response);
+        });
+    }
+
+    protected processCancel(response: AxiosResponse): Promise<SwaggerResponse<FileResponse>> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && typeof response.headers === "object") {
+            for (let k in response.headers) {
+                if (response.headers.hasOwnProperty(k)) {
+                    _headers[k] = response.headers[k];
+                }
+            }
+        }
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers["content-disposition"] : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return Promise.resolve<SwaggerResponse<FileResponse>>(new SwaggerResponse(status, _headers, { fileName: fileName, status: status, data: new Blob([response.data], { type: response.headers["content-type"] }), headers: _headers }));
+        } else if (status !== 200 && status !== 204) {
+            const _responseText = response.data;
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+        }
+        return Promise.resolve<SwaggerResponse<FileResponse>>(new SwaggerResponse(status, _headers, null as any));
+    }
 }
 
 export class AllBookingsResult implements IAllBookingsResult {
@@ -495,6 +554,50 @@ export interface INewBookingModel {
     apartmentId?: string;
     startDate?: moment.Moment;
     endDate?: moment.Moment;
+}
+
+export class CancelBookingModel implements ICancelBookingModel {
+    bookingId?: string;
+    email?: string | null;
+    idCode?: string | null;
+
+    constructor(data?: ICancelBookingModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.bookingId = _data["bookingId"] !== undefined ? _data["bookingId"] : <any>null;
+            this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
+            this.idCode = _data["idCode"] !== undefined ? _data["idCode"] : <any>null;
+        }
+    }
+
+    static fromJS(data: any): CancelBookingModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new CancelBookingModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["bookingId"] = this.bookingId !== undefined ? this.bookingId : <any>null;
+        data["email"] = this.email !== undefined ? this.email : <any>null;
+        data["idCode"] = this.idCode !== undefined ? this.idCode : <any>null;
+        return data;
+    }
+}
+
+export interface ICancelBookingModel {
+    bookingId?: string;
+    email?: string | null;
+    idCode?: string | null;
 }
 
 export class SwaggerResponse<TResult> {

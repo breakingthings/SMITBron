@@ -36,10 +36,19 @@ namespace SMITBron.Controllers
                 idCode: model.IdCode, 
                 firstname: model.Firstname, 
                 lastname: model.Lastname));
-
-            ;
+        }
+        
+        [HttpPut]
+        public async Task<IActionResult> Cancel([FromBody]CancelBookingModel model)
+        {
+            return await base.SendCommandAsync(new CancelBooking(
+                bookingId: model.BookingId,
+                email: model.Email,
+                idCode: model.IdCode
+                ));
         }
 
-        
+
+
     }
 }

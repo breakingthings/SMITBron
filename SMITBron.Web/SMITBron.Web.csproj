@@ -41,7 +41,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\BookingService\SMITBron.BookingService.csproj" />
+	  <ProjectReference Include="..\SMITBron.BookingService\SMITBron.BookingService.csproj" />
 	  <ProjectReference Include="..\SMITBron.Core\SMITBron.Core.csproj" />
 	  <ProjectReference Include="..\SMITBron.DBMigrations\SMITBron.DBMigrations.csproj" />
 	  <ProjectReference Include="..\SMITBron.HotelService\SMITBron.HotelService.csproj" />

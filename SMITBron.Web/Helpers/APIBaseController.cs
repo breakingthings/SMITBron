@@ -35,7 +35,7 @@ namespace SMITBron.Web.Helpers
             } catch (FluentValidation.ValidationException ex)
             {
                 return BadRequest(ex.Message);
-            } catch (Exception ex)
+            } catch (Exception)
             {
                 throw;
             }

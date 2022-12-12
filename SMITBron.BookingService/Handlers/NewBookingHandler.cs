@@ -24,6 +24,7 @@ namespace SMITBron.BookingService.Handlers
             {
                 var guest = await _db.GetTable<Guest>().Where(x => x.IdCode == command.IdCode).FirstOrDefaultAsync();
 
+                //if new guest insert
                 if (guest == null) 
                 {
                     guest = new Guest()
@@ -38,6 +39,7 @@ namespace SMITBron.BookingService.Handlers
                     await _db.InsertAsync<Guest>(guest);
                 }
 
+                //add the booking
                 await _db.InsertAsync<Booking>(new Booking
                 {
                     Id = Guid.NewGuid(),
