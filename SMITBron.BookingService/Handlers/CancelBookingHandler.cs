@@ -19,7 +19,6 @@ namespace SMITBron.BookingService.Handlers
         [RequestValidator(1, HandlerTiming.Before)]
         public override async Task<CancelBooking> HandleAsync(CancelBooking command, CancellationToken cancellationToken = default)
         {
-
             await _db.GetTable<Booking>().Where(x => x.Id == command.Id && x.CancelDate == null 
                 && x.Guest.Email == command.Email && x.Guest.IdCode == command.IdCode)
                 .Set(x => x.CancelDate, DateTimeOffset.UtcNow)
