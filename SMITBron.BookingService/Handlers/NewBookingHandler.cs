@@ -35,19 +35,23 @@ namespace SMITBron.BookingService.Handlers
                         Lastname = command.Lastname,
                         IdCode = command.IdCode
                     };
-
                     await _db.InsertAsync<Guest>(guest);
                 }
+
+                //returned id
+                command.NewId = Guid.NewGuid();
 
                 //add the booking
                 await _db.InsertAsync<Booking>(new Booking
                 {
-                    Id = Guid.NewGuid(),
+                    Id = command.NewId.Value,
                     GuestId = guest.Id,
                     ApartmentId = command.ApartmentId,
                     StartDate = command.StartDate,
                     EndDate = command.EndDate
                 });
+
+
 
                 await tx.CommitAsync();
 

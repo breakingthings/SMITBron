@@ -20,8 +20,14 @@ import {
 import * as moment from "moment";
 import { useEffect, useState } from "react";
 import { useFormik, FormikHelpers } from "formik";
+import { useNavigate } from "react-router-dom";
 
 export const NewBooking = () => {
+
+  const [apartments, setApartments] = useState<HotelApartmentResult[]>([]);
+
+  const navigate = useNavigate();
+
   const bookingApi = new BookingClient();
   const apartmentsApi = new ApartmentsClient();
 
@@ -29,10 +35,12 @@ export const NewBooking = () => {
     values: NewBookingModel,
     helpers: FormikHelpers<NewBookingModel>
   ) => {
-    await bookingApi.post(values);
+    const apiResult = await bookingApi.post(values);
+    if(apiResult.status === 200){
+      navigate(`/customer/bookingsuccess/${apiResult.result}`)
+    }    
   };
 
-  const [apartments, setApartments] = useState<HotelApartmentResult[]>([]);
 
   const fetchFreeApartments = async (
     from: moment.Moment,
@@ -51,9 +59,9 @@ export const NewBooking = () => {
     },
   });
 
-  const getFreeApartments = () => {
-    if (formik.values.startDate && formik.values.endDate) {
-      fetchFreeApartments(formik.values.startDate, formik.values.endDate);
+  const getFreeApartments = (startDate?: moment.Moment | null, endDate?: moment.Moment | null) => {
+    if (startDate && endDate) {
+      fetchFreeApartments(startDate, endDate);
     }
   };
 
@@ -94,9 +102,9 @@ export const NewBooking = () => {
             disablePast
             inputFormat="DD.MM.YYYY"
             value={formik.values.startDate ?? null}
-            onChange={(value) => {
-              formik.setFieldValue("startDate", value);
-              getFreeApartments();
+            onChange={async (value) => {
+              await formik.setFieldValue("startDate", value);
+              getFreeApartments(value, formik.values.endDate);
             }}
             renderInput={(params) => <TextField {...params} />}
           />
@@ -106,9 +114,9 @@ export const NewBooking = () => {
             disablePast
             inputFormat="DD.MM.YYYY"
             value={formik.values.endDate ?? null}
-            onChange={(value) => {
-              formik.setFieldValue("endDate", value);
-              getFreeApartments();
+            onChange={async (value) => {
+              await formik.setFieldValue("endDate", value);
+              getFreeApartments(formik.values.startDate, value);
             }}
             renderInput={(params) => <TextField {...params} />}
           />

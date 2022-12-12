@@ -4,6 +4,7 @@ using Paramore.Brighter;
 using Paramore.Darker;
 using System;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace SMITBron.Web.Helpers
@@ -14,15 +15,22 @@ namespace SMITBron.Web.Helpers
         
         protected readonly IQueryProcessor _queryProcessor;
 
-        private const string TimeTakenHeaderKey = "X-Http-Timetaken";
+        public const string TimeTakenHeaderKey = "X-Request-Timetaken";
 
         public APIBaseController(IAmACommandProcessor commandProcessor, IQueryProcessor queryProcessor)
         {
             _commandProcessor = commandProcessor;
             _queryProcessor = queryProcessor;
         }
+        
+        protected async Task<ActionResult<StatusCodeResult>> SendCommandAsync<T>(T command) where T : class, IRequest
+        {
+            return await SendCommandAsync<T, StatusCodeResult>(command, null);
+        }
 
-        protected async Task<ActionResult> SendCommandAsync<T>(T command) where T : class, IRequest
+
+        protected async Task<ActionResult<TResult>> SendCommandAsync<T, TResult>(T command, 
+            Expression<Func<T, TResult>> resultSelector) where T : class, IRequest
         {
             try
             {
@@ -30,8 +38,9 @@ namespace SMITBron.Web.Helpers
                 sw.Start();
                 await _commandProcessor.SendAsync(command);
                 sw.Stop();
-                HttpContext.Response.Headers.Add(TimeTakenHeaderKey, sw.ElapsedMilliseconds.ToString());
-                return Ok();
+                Response.Headers.Add(TimeTakenHeaderKey, sw.ElapsedMilliseconds.ToString());
+
+                return resultSelector != null ? Ok(resultSelector.Compile()(command)) : NoContent();
             } catch (FluentValidation.ValidationException ex)
             {
                 return BadRequest(ex.Message);
@@ -46,9 +55,12 @@ namespace SMITBron.Web.Helpers
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
+
             var result = await _queryProcessor.ExecuteAsync(query);
+            
             sw.Stop();
-            HttpContext.Response.Headers.Add(TimeTakenHeaderKey, sw.ElapsedMilliseconds.ToString());
+            
+            Response.Headers.Add(TimeTakenHeaderKey, sw.ElapsedMilliseconds.ToString());
 
             return Ok(result);
         }

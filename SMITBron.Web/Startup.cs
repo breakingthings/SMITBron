@@ -21,6 +21,7 @@ using FluentValidation.AspNetCore;
 using System.Reflection;
 using FluentValidation;
 using LinqToDB.Data;
+using SMITBron.Web.Helpers;
 
 namespace SMITBron
 {
@@ -72,7 +73,12 @@ namespace SMITBron
 
             services.AddCors(o => o.AddPolicy(DEV_CORS, builder =>
             {
-                builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(origin => true);
+                builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(origin => true)
+                .WithExposedHeaders(new string[]
+                {
+                    APIBaseController.TimeTakenHeaderKey
+                });
+                
             }));
 
             services.AddLinqToDBContext<RWDbConnection>((provider, options) =>

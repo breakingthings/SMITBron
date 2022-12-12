@@ -9,6 +9,8 @@ namespace SMITBron.BookingService.Requests
 {
     public class NewBooking : Command
     {
+        public Guid? NewId { get; set; }
+
         public Guid ApartmentId { get; set; }
         
         public DateTime StartDate { get; set; }

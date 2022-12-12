@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NLog.Common;
 using SMITBron.Web.Helpers;
 using Paramore.Darker;
+using System;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -26,7 +27,7 @@ namespace SMITBron.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody]NewBookingModel model)
+        public async Task<ActionResult<Guid>> Post([FromBody]NewBookingModel model)
         {
             return await base.SendCommandAsync(new NewBooking(
                 apartmentId: model.ApartmentId,                 
@@ -35,11 +36,11 @@ namespace SMITBron.Controllers
                 email: model.Email,
                 idCode: model.IdCode, 
                 firstname: model.Firstname, 
-                lastname: model.Lastname));
+                lastname: model.Lastname), x => x.NewId.Value);
         }
         
         [HttpPut]
-        public async Task<IActionResult> Cancel([FromBody]CancelBookingModel model)
+        public async Task<ActionResult<StatusCodeResult>> Cancel([FromBody]CancelBookingModel model)
         {
             return await base.SendCommandAsync(new CancelBooking(
                 bookingId: model.BookingId,
