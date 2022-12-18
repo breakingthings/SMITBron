@@ -10,6 +10,7 @@
     <PackageReference Include="FluentValidation" Version="11.4.0" />
     <PackageReference Include="linq2db" Version="4.3.0" />
     <PackageReference Include="Paramore.Brighter" Version="9.3.5" />
+    <PackageReference Include="Paramore.Darker" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

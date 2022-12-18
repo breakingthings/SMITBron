@@ -31,8 +31,8 @@ namespace SMITBron.Controllers
         {
             return await base.SendCommandAsync(new NewBooking(
                 apartmentId: model.ApartmentId,                 
-                startDate: model.StartDate,
-                endDate: model.EndDate, 
+                startDate: model.StartDate.ToLocalTime().Date,
+                endDate: model.EndDate.ToLocalTime().Date, 
                 email: model.Email,
                 idCode: model.IdCode, 
                 firstname: model.Firstname, 
@@ -40,13 +40,13 @@ namespace SMITBron.Controllers
         }
         
         [HttpPut]
-        public async Task<ActionResult<StatusCodeResult>> Cancel([FromBody]CancelBookingModel model)
+        public async Task<ActionResult<string>> Cancel([FromBody]CancelBookingModel model)
         {
             return await base.SendCommandAsync(new CancelBooking(
                 bookingId: model.BookingId,
                 email: model.Email,
                 idCode: model.IdCode
-                ));
+                ), x => "");
         }
 
 

@@ -1,5 +1,7 @@
-﻿using Paramore.Darker;
+﻿using Paramore.Brighter;
+using Paramore.Darker;
 using SMITBron.HotelService.Responses;
+using SMITBron.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,7 @@ namespace SMITBron.HotelService.Requests
         
         public bool SortDesc { get; }
 
+        
         public GetAllBookings(int pageNumber, int pageSize, bool showCanceled, string sortField, bool sortDesc)
         {
             PageNumber = pageNumber;

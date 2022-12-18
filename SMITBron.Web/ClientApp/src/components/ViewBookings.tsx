@@ -11,8 +11,11 @@ import {
   GridValueFormatterParams,
 } from "@mui/x-data-grid";
 import { Box, Grid } from "@mui/material";
+import { WrapApi } from "../helpers/ApiHelper";
+import { MainContext } from "../context/MainContext";
 
 export const ViewBookings = () => {
+  const mainContext = React.useContext(MainContext);
   const hotelApi = new HotelClient();
   const [allBookingsResult, setBookings] = useState<AllBookingsResult>(
     new AllBookingsResult({ bookings: [], totalCount: 0 })
@@ -23,20 +26,26 @@ export const ViewBookings = () => {
   });
 
   const getBookings = async () => {
-    let swResult = await hotelApi.getAllBookings(
-      1,
-      100,
-      false,
-      sortModel.field,
-      sortModel.sort === "desc"
+    const apiResult = await WrapApi(
+      hotelApi.getAllBookings(
+        1,
+        100,
+        false,
+        sortModel.field,
+        sortModel.sort === "desc"
+      ),
+      mainContext,
+      true
     );
-    setBookings(swResult.result);
+
+    if (apiResult != null) {
+      setBookings(apiResult);
+    }
   };
 
   const handleSortModelChange = React.useCallback(
     (sortModel: GridSortModel) => {
       setSortModel(sortModel[0]);
-
     },
     []
   );

@@ -249,7 +249,7 @@ export class BookingClient extends ApiBase {
         return Promise.resolve<SwaggerResponse<string>>(new SwaggerResponse(status, _headers, null as any));
     }
 
-    cancel(model: CancelBookingModel , cancelToken?: CancelToken | undefined): Promise<SwaggerResponse<FileResponse>> {
+    cancel(model: CancelBookingModel , cancelToken?: CancelToken | undefined): Promise<SwaggerResponse<string>> {
         let url_ = this.baseUrl + "/api/Booking";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -257,12 +257,11 @@ export class BookingClient extends ApiBase {
 
         let options_: AxiosRequestConfig = {
             data: content_,
-            responseType: "blob",
             method: "PUT",
             url: url_,
             headers: {
                 "Content-Type": "application/json",
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             },
             cancelToken
         };
@@ -280,7 +279,7 @@ export class BookingClient extends ApiBase {
         });
     }
 
-    protected processCancel(response: AxiosResponse): Promise<SwaggerResponse<FileResponse>> {
+    protected processCancel(response: AxiosResponse): Promise<SwaggerResponse<string>> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && typeof response.headers === "object") {
@@ -290,22 +289,19 @@ export class BookingClient extends ApiBase {
                 }
             }
         }
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers["content-disposition"] : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return Promise.resolve<SwaggerResponse<FileResponse>>(new SwaggerResponse(status, _headers, { fileName: fileName, status: status, data: new Blob([response.data], { type: response.headers["content-type"] }), headers: _headers }));
+        if (status === 200) {
+            const _responseText = response.data;
+            let result200: any = null;
+            let resultData200  = _responseText;
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return Promise.resolve<SwaggerResponse<string>>(new SwaggerResponse<string>(status, _headers, result200));
+
         } else if (status !== 200 && status !== 204) {
             const _responseText = response.data;
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
         }
-        return Promise.resolve<SwaggerResponse<FileResponse>>(new SwaggerResponse(status, _headers, null as any));
+        return Promise.resolve<SwaggerResponse<string>>(new SwaggerResponse(status, _headers, null as any));
     }
 }
 
@@ -607,13 +603,6 @@ export class SwaggerResponse<TResult> {
         this.headers = headers;
         this.result = result;
     }
-}
-
-export interface FileResponse {
-    data: Blob;
-    status: number;
-    fileName?: string;
-    headers?: { [name: string]: any };
 }
 
 export class ApiException extends Error {

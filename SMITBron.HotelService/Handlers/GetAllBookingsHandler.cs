@@ -1,4 +1,5 @@
-﻿using LinqToDB;
+﻿using FluentValidation;
+using LinqToDB;
 using LinqToDB.SqlQuery;
 using Paramore.Brighter;
 using Paramore.Darker;
@@ -6,6 +7,7 @@ using SMITBron.Core.Entities;
 using SMITBron.Core.Extensions;
 using SMITBron.HotelService.Requests;
 using SMITBron.HotelService.Responses;
+using SMITBron.HotelService.Validators;
 using SMITBron.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -20,14 +22,18 @@ namespace SMITBron.HotelService.Handlers
     public class GetAllBookingsHandler : QueryHandlerAsync<GetAllBookings, AllBookingsResult>
     {
         private readonly RWDbConnection _db;
+        private readonly AllBookingsValidator _validator;
 
-        public GetAllBookingsHandler(RWDbConnection db)
+        public GetAllBookingsHandler(RWDbConnection db, AllBookingsValidator validator)
         {
             this._db = db;
+            this._validator = validator;
         }
 
         public override async Task<AllBookingsResult> ExecuteAsync(GetAllBookings query, CancellationToken cancellationToken = default)
         {
+
+            await _validator.ValidateAndThrowAsync(query, cancellationToken);
 
             var dbQuery = _db.GetTable<Booking>().LoadWith(x => x.Guest).LoadWith(x => x.Apartment)
                 .Where(x => x.CancelDate == null).Skip((query.PageNumber - 1) * query.PageSize)

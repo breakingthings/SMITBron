@@ -17,58 +17,72 @@ import {
   BookingClient,
   CancelBookingModel,
 } from "../APIClient";
-import * as moment from "moment";
-import { useEffect, useState } from "react";
-import { useFormik, FormikHelpers } from "formik";
-
+import {
+  FormContainer,
+  TextFieldElement,
+  DatePickerElement,
+  SelectElement,
+} from "react-hook-form-mui";
+import { useForm } from "react-hook-form";
+import { WrapApi } from "../helpers/ApiHelper";
+import { MainContext } from "../context/MainContext";
 
 export const CancelBooking = () => {
-
-    const bookingApi = new BookingClient();
-
-    const cancelBooking = async (model: CancelBookingModel) => {
-        var reqResult = await bookingApi.cancel(model);
-        if(reqResult.status === 200){
-            alert('Booking canceled');
-        }
+  const mainContext = React.useContext(MainContext);
+  const bookingApi = new BookingClient();
+  const cancelBooking = async (model: CancelBookingModel) => {
+    var reqResult = await WrapApi(bookingApi.cancel(model), mainContext);
+    if (reqResult !== null) {
+      mainContext.showSnack("Booking canceled", "success");
     }
+  };
 
-    const formik = useFormik<CancelBookingModel>({
-        initialValues: new CancelBookingModel(),
-        onSubmit: cancelBooking,
-        validateOnChange: true,
-        validate: (values) => {
-          return {};
-        },
-      });
+  const formContext = useForm<CancelBookingModel>({});
 
-    return ( <form onSubmit={formik.handleSubmit}>
+  const CancelFormContainer = FormContainer<CancelBookingModel>;
+
+  return (
+    <div>
+      <CancelFormContainer
+        onSuccess={(model) => {
+          cancelBooking(model);
+        }}
+        reValidateMode="onChange"
+        formContext={formContext}
+      >
         <Stack spacing={2}>
-        <TextField
+          <TextFieldElement
             variant="standard"
             label="Booking code"
             name="bookingId"
-            value={formik.values.bookingId}
-            onChange={formik.handleChange}
+            required
           />
-          <TextField
+          <TextFieldElement
             variant="standard"
             label="Id code"
             name="idCode"
-            value={formik.values.idCode}
-            onChange={formik.handleChange}
+            required
           />
-          <TextField
+          <TextFieldElement
             variant="standard"
             label="E-mail"
             name="email"
-            value={formik.values.email}
-            onChange={formik.handleChange}
+            validation={{
+              pattern: {
+                value: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+                message: "Email is not valid",
+              },
+            }}
           />
-          <Button variant="contained" type="submit" disabled={!formik.isValid}>
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={!formContext.formState.isValid}
+          >
             Cancel
           </Button>
-
-           </Stack>
-          </form>);
-}
+        </Stack>
+      </CancelFormContainer>
+    </div>
+  );
+};

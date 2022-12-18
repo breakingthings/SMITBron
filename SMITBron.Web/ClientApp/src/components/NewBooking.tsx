@@ -9,6 +9,13 @@ import {
   Stack,
 } from "@mui/material";
 
+import {
+  FormContainer,
+  TextFieldElement,
+  DatePickerElement,
+  SelectElement,
+} from "react-hook-form-mui";
+
 import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
 import {
@@ -19,28 +26,27 @@ import {
 } from "../APIClient";
 import * as moment from "moment";
 import { useEffect, useState } from "react";
-import { useFormik, FormikHelpers } from "formik";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { WrapApi } from "../helpers/ApiHelper";
+import { MainContext } from "../context/MainContext";
 
 export const NewBooking = () => {
-
   const [apartments, setApartments] = useState<HotelApartmentResult[]>([]);
 
   const navigate = useNavigate();
 
   const bookingApi = new BookingClient();
   const apartmentsApi = new ApartmentsClient();
+  const mainContext = React.useContext(MainContext);
 
-  const bookApartment = async (
-    values: NewBookingModel,
-    helpers: FormikHelpers<NewBookingModel>
-  ) => {
-    const apiResult = await bookingApi.post(values);
-    if(apiResult.status === 200){
-      navigate(`/customer/bookingsuccess/${apiResult.result}`)
-    }    
+  const bookApartment = async (values: NewBookingModel) => {
+    const apiResult = await WrapApi(bookingApi.post(values), mainContext, true);
+
+    if (apiResult) {
+      navigate(`/customer/bookingsuccess/${apiResult}`);
+    }
   };
-
 
   const fetchFreeApartments = async (
     from: moment.Moment,
@@ -50,100 +56,143 @@ export const NewBooking = () => {
     setApartments(data.result);
   };
 
-  const formik = useFormik<NewBookingModel>({
-    initialValues: new NewBookingModel(),
-    onSubmit: bookApartment,
-    validateOnChange: true,
-    validate: (values) => {
-      return {};
-    },
-  });
-
-  const getFreeApartments = (startDate?: moment.Moment | null, endDate?: moment.Moment | null) => {
+  const getFreeApartments = (
+    startDate?: moment.Moment | null,
+    endDate?: moment.Moment | null
+  ) => {
     if (startDate && endDate) {
       fetchFreeApartments(startDate, endDate);
     }
   };
 
+  const NewFormContainer = FormContainer<NewBookingModel>;
+
+  const formContext = useForm<NewBookingModel>({});
+
+  let startDateRef = React.useRef(null);
+  let endDateRef = React.useRef(null);
+
   return (
     <LocalizationProvider dateAdapter={AdapterMoment}>
-      <form onSubmit={formik.handleSubmit}>
+      <NewFormContainer
+        onSuccess={(x) => {
+          bookApartment(x);
+        }}
+        reValidateMode="onChange"
+        formContext={formContext}
+      >
         <Stack spacing={2}>
-          <TextField
+          <TextFieldElement
+            required
             variant="standard"
             label="First name"
             name="firstname"
-            value={formik.values.firstname}
-            onChange={formik.handleChange}
+            validation={{
+              minLength: {
+                value: 3,
+                message: "First name must be at least 3 digits",
+              },
+            }}
           />
-          <TextField
+          <TextFieldElement
+            required
             variant="standard"
             label="Last name"
             name="lastname"
-            value={formik.values.lastname}
-            onChange={formik.handleChange}
+            validation={{
+              minLength: {
+                value: 3,
+                message: "Last name must be at least 3 digits",
+              },
+            }}
           />
-          <TextField
+
+          <TextFieldElement
+            required
             variant="standard"
             label="Id code"
             name="idCode"
-            value={formik.values.idCode}
-            onChange={formik.handleChange}
+            validation={{
+              minLength: {
+                value: 8,
+                message: "Id code must be at least 8 digits",
+              },
+              pattern: {
+                value: /^\d+$/,
+                message: "Id code must be digits only",
+              },
+            }}
           />
-          <TextField
+
+          <TextFieldElement
+            required
             variant="standard"
             label="E-mail"
             name="email"
-            value={formik.values.email}
-            onChange={formik.handleChange}
+            validation={{
+              pattern: {
+                value: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+                message: "Email is not valid",
+              },
+            }}
           />
-          <DesktopDatePicker
+          <div
+            style={{ height: 0, width: "100%", margin: 0 }}
+            ref={startDateRef}
+          ></div>
+          <DatePickerElement
+            required
+            name="startDate"
             label="Start date"
             disablePast
             inputFormat="DD.MM.YYYY"
-            value={formik.values.startDate ?? null}
-            onChange={async (value) => {
-              await formik.setFieldValue("startDate", value);
-              getFreeApartments(value, formik.values.endDate);
+            PopperProps={{
+              anchorEl: startDateRef.current,
+              placement: "top",
             }}
-            renderInput={(params) => <TextField {...params} />}
+            onChange={(x) => {
+              getFreeApartments(x, formContext.getValues().endDate);
+            }}
           />
-
-          <DesktopDatePicker
+          <div
+            style={{ height: 0, width: "100%", margin: 0 }}
+            ref={endDateRef}
+          ></div>
+          <DatePickerElement
+            required
+            name="endDate"
             label="End date"
             disablePast
             inputFormat="DD.MM.YYYY"
-            value={formik.values.endDate ?? null}
-            onChange={async (value) => {
-              await formik.setFieldValue("endDate", value);
-              getFreeApartments(formik.values.startDate, value);
+            PopperProps={{
+              anchorEl: endDateRef.current,
+              placement: "top",
             }}
-            renderInput={(params) => <TextField {...params} />}
+            onChange={(x) => {
+              getFreeApartments(formContext.getValues().startDate, x);
+            }}
           />
-
-          <FormControl fullWidth>
-            <InputLabel id="demo-simple-select-label">Room</InputLabel>
-            <Select
-              labelId="Select room"
-              id="room"
-              label="Select room"
-              value={formik.values.apartmentId}
-              onChange={formik.handleChange}
-              name="apartmentId"
-            >
-              {apartments.map((x) => (
-                <MenuItem value={x.id}>
-                  Rooms: {x.numberOfRooms}, Beds: {x.numberOfBeds}, Price:{" "}
-                  {x.price}€
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button variant="contained" type="submit" disabled={!formik.isValid}>
+          <SelectElement
+            required
+            label="Select room"
+            id="room"
+            name="apartmentId"
+            options={apartments.map((x) => {
+              return {
+                id: x.id,
+                label: `Rooms: ${x.numberOfRooms}, Beds: ${x.numberOfBeds}, Price: ${x.price}€`,
+              };
+            })}
+          ></SelectElement>
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={!formContext.formState.isValid}
+          >
             Book
           </Button>
         </Stack>
-      </form>
+      </NewFormContainer>
     </LocalizationProvider>
   );
 };

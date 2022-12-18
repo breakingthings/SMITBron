@@ -1,0 +1,19 @@
+.waitingOverlay {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+    background-color: rgba(0,0,0,0.05);
+    
+}
+
+.waitSpinner {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    margin-top: -12px;
+    margin-left: -12px;
+}
+

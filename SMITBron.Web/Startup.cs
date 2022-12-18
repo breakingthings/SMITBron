@@ -22,6 +22,7 @@ using System.Reflection;
 using FluentValidation;
 using LinqToDB.Data;
 using SMITBron.Web.Helpers;
+using SMITBron.Web.Middlewares;
 
 namespace SMITBron
 {
@@ -51,14 +52,17 @@ namespace SMITBron
                 options.HandlerLifetime = ServiceLifetime.Scoped;
                 options.CommandProcessorLifetime = ServiceLifetime.Scoped;
                 
-            }).AutoFromAssemblies(typeof(BookingService.Handlers.NewBookingHandler).Assembly);
+            }).AutoFromAssemblies(typeof(BookingService.Handlers.NewBookingHandler).Assembly, 
+            typeof(HotelService.Handlers.GetAllBookingsHandler).Assembly);
 
             services.AddDarker(options =>
             {
                 options.HandlerLifetime = ServiceLifetime.Scoped;
                 options.QueryProcessorLifetime = ServiceLifetime.Scoped;
             })
-             .AddHandlersFromAssemblies(typeof(SMITBron.HotelService.Responses.HotelApartmentResult).Assembly)
+             .AddHandlersFromAssemblies(typeof(SMITBron.HotelService.Responses.HotelApartmentResult).Assembly,
+                typeof(SMITBron.BookingService.Handlers.CancelBookingHandler).Assembly
+             )
              .AddJsonQueryLogging();
 
             services.AddValidatorsFromAssemblies(new Assembly[]
@@ -85,6 +89,9 @@ namespace SMITBron
             {
                 options.UseConnectionString(LinqToDB.ProviderName.PostgreSQL, Configuration.GetConnectionString("Default"));
             });
+
+            services.AddSingleton<RequestInfoHeadersMiddleware>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -105,9 +112,12 @@ namespace SMITBron
                 app.UseHsts();
             }
 
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
+
+            app.UseMiddleware<SMITBron.Web.Middlewares.RequestInfoHeadersMiddleware>();
 
             app.UseRouting();
             app.UseOpenApi();
@@ -136,7 +146,9 @@ namespace SMITBron
                 }
             });
 
-            
+
+
+
             ///Run dbup on startup
             DBMigrations.DBMigrations.Run(Configuration.GetConnectionString("Default"), 
                 app.ApplicationServices.GetService<ILogger<DBMigrations.DBMigrations>>());

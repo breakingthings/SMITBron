@@ -27,6 +27,7 @@ namespace APIClientGenerator
             settings.TypeScriptGeneratorSettings.TypeStyle = TypeScriptTypeStyle.Class;
             settings.PromiseType = PromiseType.Promise;
             settings.TypeScriptGeneratorSettings.NullValue = TypeScriptNullValue.Null;
+            
 
             settings.Template = TypeScriptTemplate.Axios;
             settings.WrapResponses = true;

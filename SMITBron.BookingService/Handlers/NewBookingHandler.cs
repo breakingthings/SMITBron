@@ -3,7 +3,8 @@ using SMITBron.Core.Entities;
 using Paramore.Brighter;
 using SMITBron.BookingService.Requests;
 using SMITBron.Infrastructure;
-
+using FluentValidation.Results;
+using FluentValidation;
 
 namespace SMITBron.BookingService.Handlers
 {
@@ -22,6 +23,20 @@ namespace SMITBron.BookingService.Handlers
             using var tx = await _db.BeginTransactionAsync(cancellationToken);
             try
             {
+
+                var existingBooking = await _db.GetTable<Booking>().Where(x => x.ApartmentId == command.ApartmentId &&
+                   ((x.StartDate >= command.StartDate && x.StartDate <= command.EndDate)
+                   || (x.EndDate >= command.StartDate && x.EndDate <= command.EndDate)) && x.CancelDate == null)
+                   .FirstOrDefaultAsync();
+
+                if (existingBooking != null)
+                {
+                    throw new ValidationException(new ValidationFailure[]
+                    {
+                        new ValidationFailure("startDate", "Apartment already booked")
+                    });
+                }
+
                 var guest = await _db.GetTable<Guest>().Where(x => x.IdCode == command.IdCode).FirstOrDefaultAsync();
 
                 //if new guest insert
@@ -35,14 +50,14 @@ namespace SMITBron.BookingService.Handlers
                         Lastname = command.Lastname,
                         IdCode = command.IdCode
                     };
-                    await _db.InsertAsync<Guest>(guest);
+                    await _db.InsertAsync(guest);
                 }
 
                 //returned id
                 command.NewId = Guid.NewGuid();
 
                 //add the booking
-                await _db.InsertAsync<Booking>(new Booking
+                await _db.InsertAsync(new Booking
                 {
                     Id = command.NewId.Value,
                     GuestId = guest.Id,
@@ -51,10 +66,7 @@ namespace SMITBron.BookingService.Handlers
                     EndDate = command.EndDate
                 });
 
-
-
                 await tx.CommitAsync();
-
             }
             catch
             {
